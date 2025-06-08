@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>쉽다쉬워! 요리왕 - 챗봇 데모</title>
+</head>
+<body>
+  <h2>🍳 쉽다쉬워! 요리왕 - 혼밥족을 위한 핸즈프리 요리 도우미</h2>
+
+  <!-- DialogFlow 챗봇 삽입 -->
+  <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+  <df-messenger
+    intent="WELCOME"
+    chat-title="쉽다쉬워!요리왕"
+    agent-id="fd70106c-4863-4636-ab90-13920c96c85c"
+    language-code="ko"
+  ></df-messenger>
+
+  <!-- 음성 입력 버튼 추가 -->
+  <script>
+    const observer = new MutationObserver(() => {
+      const input = document.querySelector('df-messenger').shadowRoot
+                      .querySelector('df-messenger-chat')
+                      .shadowRoot.querySelector('input');
+
+      if (input && !document.getElementById('mic-button')) {
+        const btn = document.createElement('button');
+        btn.id = 'mic-button';
+        btn.innerText = '🎤';
+        btn.style.marginLeft = '10px';
+
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'ko-KR';
+
+        btn.onclick = () => {
+          recognition.start();
+        };
+
+        recognition.onresult = (event) => {
+          const speech = event.results[0][0].transcript;
+          input.value = speech;
+          input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
+        };
+
+        input.parentNode.appendChild(btn);
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  </script>
+</body>
+</html>
