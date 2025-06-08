@@ -2,12 +2,12 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>쉽다쉬워! 요리왕 - 챗봇 데모</title>
+  <title>쉽다쉬워! 요리왕 - 음성 챗봇</title>
 </head>
 <body>
   <h2>🍳 쉽다쉬워! 요리왕 - 혼밥족을 위한 핸즈프리 요리 도우미</h2>
 
-  <!-- DialogFlow 챗봇 삽입 -->
+  <!-- DialogFlow 챗봇 -->
   <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
   <df-messenger
     intent="WELCOME"
@@ -16,37 +16,46 @@
     language-code="ko"
   ></df-messenger>
 
-  <!-- 음성 입력 버튼 추가 -->
+  <!-- 음성 입력 버튼 (페이지 하단 고정) -->
   <script>
-    const observer = new MutationObserver(() => {
-      const input = document.querySelector('df-messenger').shadowRoot
-                      .querySelector('df-messenger-chat')
-                      .shadowRoot.querySelector('input');
+    if ('webkitSpeechRecognition' in window) {
+      const recognition = new webkitSpeechRecognition();
+      recognition.lang = 'ko-KR';
 
-      if (input && !document.getElementById('mic-button')) {
-        const btn = document.createElement('button');
-        btn.id = 'mic-button';
-        btn.innerText = '🎤';
-        btn.style.marginLeft = '10px';
+      const micBtn = document.createElement('button');
+      micBtn.innerText = '🎤 말하기';
+      micBtn.style.position = 'fixed';
+      micBtn.style.bottom = '20px';
+      micBtn.style.left = '20px';
+      micBtn.style.zIndex = '9999';
+      micBtn.style.padding = '10px';
+      micBtn.style.borderRadius = '20px';
+      micBtn.style.border = 'none';
+      micBtn.style.background = '#4285F4';
+      micBtn.style.color = 'white';
+      micBtn.style.fontSize = '16px';
+      document.body.appendChild(micBtn);
 
-        const recognition = new webkitSpeechRecognition();
-        recognition.lang = 'ko-KR';
+      micBtn.onclick = () => recognition.start();
 
-        btn.onclick = () => {
-          recognition.start();
-        };
+      recognition.onresult = function (event) {
+        const result = event.results[0][0].transcript;
 
-        recognition.onresult = (event) => {
-          const speech = event.results[0][0].transcript;
-          input.value = speech;
-          input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
-        };
+        const input = document.querySelector('df-messenger')
+          ?.shadowRoot?.querySelector('df-messenger-chat')
+          ?.shadowRoot?.querySelector('input');
 
-        input.parentNode.appendChild(btn);
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
+        if (input) {
+          input.value = result;
+          input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+        } else {
+          alert("챗봇 입력창을 찾을 수 없습니다.");
+        }
+      };
+    } else {
+      alert("이 브라우저는 음성 인식을 지원하지 않습니다. 크롬을 사용하세요.");
+    }
   </script>
 </body>
 </html>
+
