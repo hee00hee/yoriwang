@@ -7,7 +7,7 @@
 <body>
   <h2>🍳 쉽다쉬워! 요리왕 - 혼밥족을 위한 핸즈프리 요리 도우미</h2>
 
-  <!-- DialogFlow 챗봇 -->
+  <!-- DialogFlow 챗봇 삽입 -->
   <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
   <df-messenger
     intent="WELCOME"
@@ -16,46 +16,53 @@
     language-code="ko"
   ></df-messenger>
 
-  <!-- 음성 입력 버튼 (페이지 하단 고정) -->
+  <!-- 음성 입력 버튼 고정 생성 + 안정화된 삽입 로직 -->
   <script>
     if ('webkitSpeechRecognition' in window) {
       const recognition = new webkitSpeechRecognition();
       recognition.lang = 'ko-KR';
 
-      const micBtn = document.createElement('button');
-      micBtn.innerText = '🎤 말하기';
-      micBtn.style.position = 'fixed';
-      micBtn.style.bottom = '20px';
-      micBtn.style.left = '20px';
-      micBtn.style.zIndex = '9999';
-      micBtn.style.padding = '10px';
-      micBtn.style.borderRadius = '20px';
-      micBtn.style.border = 'none';
-      micBtn.style.background = '#4285F4';
-      micBtn.style.color = 'white';
-      micBtn.style.fontSize = '16px';
-      document.body.appendChild(micBtn);
-
-      micBtn.onclick = () => recognition.start();
-
-      recognition.onresult = function (event) {
-        const result = event.results[0][0].transcript;
-
+      const insertMicButton = () => {
         const input = document.querySelector('df-messenger')
           ?.shadowRoot?.querySelector('df-messenger-chat')
           ?.shadowRoot?.querySelector('input');
 
-        if (input) {
-          input.value = result;
-          input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
-        } else {
-          alert("챗봇 입력창을 찾을 수 없습니다.");
+        if (input && !document.getElementById('mic-button')) {
+          const btn = document.createElement('button');
+          btn.id = 'mic-button';
+          btn.innerText = '🎤 말하기';
+          btn.style.position = 'fixed';
+          btn.style.bottom = '20px';
+          btn.style.left = '20px';
+          btn.style.zIndex = '9999';
+          btn.style.padding = '10px 16px';
+          btn.style.borderRadius = '20px';
+          btn.style.border = 'none';
+          btn.style.background = '#4285F4';
+          btn.style.color = 'white';
+          btn.style.fontSize = '16px';
+          document.body.appendChild(btn);
+
+          btn.onclick = () => recognition.start();
+
+          recognition.onresult = function (event) {
+            const speech = event.results[0][0].transcript;
+            input.value = speech;
+            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+          };
         }
       };
+
+      const observer = new MutationObserver(() => {
+        insertMicButton();
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
     } else {
-      alert("이 브라우저는 음성 인식을 지원하지 않습니다. 크롬을 사용하세요.");
+      alert("이 브라우저는 음성 인식을 지원하지 않습니다. 크롬에서 열어보세요.");
     }
   </script>
 </body>
 </html>
+
 
